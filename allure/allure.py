@@ -111,10 +111,10 @@ class XMLBuilder(object):
                     attach_file_type = attach_file_name.split(".")[1]
                 else:
                     raise KeyError("Required key 'filename' in attachments items")
-                attachment = etree.SubElement(attachments_nod, "attachment",
-                                              attrib={"title": attach_title, "source": attach_file_name, "type": attach_file_type})
-                attachment = etree.SubElement(attachments_nod, "img", attrib={"title": attach_title, "source": attach_file_name, "type": "image"})
-
+                if 'type' in attachment:
+                    attach_file_type = attachment.get('type')
+                attachment = etree.SubElement(attachments_nod, "attachment", attrib={"title": attach_title, "source": attach_file_name, "type": attach_file_type})
+                
     def set_step_status(self, step, attachments=None):
         steps = self._background_steps + self._scenario_steps  # List of steps in feature
 
