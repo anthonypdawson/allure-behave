@@ -11,10 +11,10 @@ def get_time():
 class XMLBuilder(object):
     """XML report files builder"""
 
-    def __init__(self, out_directory_name, suite_name, browser_type, url):
+    def __init__(self, out_directory_name, suite_name, **kwargs):
         self._id = str(uuid4())
         self._create_test_suite(suite_name)
-        self._create_environment_xml(suite_name, browser_type, url)
+        self._create_environment_xml(suite_name, **kwargs)
         self._scenario_exception = None
         self._report_dir_name = out_directory_name
 
@@ -32,14 +32,12 @@ class XMLBuilder(object):
         etree.SubElement(self.suite, "labels")
         self._test_cases = etree.SubElement(self.suite, "test-cases")
 
-    def _create_environment_xml(self, test_suit_name, browser_type, url):
+    def _create_environment_xml(self, test_suit_name, **kwargs):
         """Create environment.xml with
         environment information
 
-        :param browser_type: browser type,
-        :param url: host url
         """
-        env_params = {'Browser': browser_type, 'URL': url}
+        env_params = kwargs
         self.environment = etree.Element('root')
         self.environment_id = etree.SubElement(self.environment, 'id')
         self.environment_id.text = self._id
@@ -166,12 +164,10 @@ class XMLBuilder(object):
 class Report(object):
     """Report builder"""
 
-    def __init__(self, out_directory_name, report_name, browser_type, url, re_create=True):
+    def __init__(self, out_directory_name, report_name, re_create=False, **kwargs):
         """Args:
             out_directory_name (str): report directory
             report_name (str): name displayed in report
-            browser_type (str): browser type name
-            url (str): url test site
             re_create (bool): if True then re-create report folder, else add new unique name
             report files in the report folder
         """
@@ -184,7 +180,7 @@ class Report(object):
         if not os.path.exists(out_directory_name):
             os.makedirs(out_directory_name)
 
-        self._builder = XMLBuilder(out_directory_name, report_name, browser_type, url)
+        self._builder = XMLBuilder(out_directory_name, report_name, **kwargs)
 
     def before_feature(self, feature):
         """Set feature
