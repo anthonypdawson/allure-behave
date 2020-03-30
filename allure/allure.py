@@ -53,7 +53,9 @@ class XMLBuilder(object):
             self.parameter_value = etree.SubElement(self.parameter, 'value')
             self.parameter_value.text = env_params[key]
 
-    def create_test_case(self, scenario_name, scenario_steps):
+    def create_test_case(self, scenario):
+        scenario_name = scenario.name
+        scenario_steps = scenario.steps
         self._test_case = etree.SubElement(self._test_cases, "test-case", attrib={"start": get_time()})
         name = etree.SubElement(self._test_case, "name")
         name.text = scenario_name
@@ -100,6 +102,11 @@ class XMLBuilder(object):
         if attachments is not None:
             attachments_nod = etree.SubElement(self._step, "attachments")
             for attachment in attachments:
+                if 'type' in attachment:
+                    attach_file_type = attachment.get('type')
+                    if attach_file_type == "label":
+                        self._attach_label(attachments_nod, attachment)
+                        continue
                 if attachment.get("title"):
                     attach_title = attachment["title"]
                 else:
@@ -109,10 +116,13 @@ class XMLBuilder(object):
                     attach_file_type = attach_file_name.split(".")[1]
                 else:
                     raise KeyError("Required key 'filename' in attachments items")
-                if 'type' in attachment:
-                    attach_file_type = attachment.get('type')
+
                 attachment = etree.SubElement(attachments_nod, "attachment", attrib={"title": attach_title, "source": attach_file_name, "type": attach_file_type})
-                
+
+    def _attach_label(self, attachments_nod, label):
+        text_el = etree.SubElement(attachments_nod, 'a', attrib={"title": label.get('title', '')})
+        text_el.text = label.get('text', "")
+
     def set_step_status(self, step, attachments=None):
         steps = self._background_steps + self._scenario_steps  # List of steps in feature
 
@@ -198,7 +208,7 @@ class Report(object):
 
         :param scenario: scenario structure from behave
         """
-        self._builder.create_test_case(scenario.name, scenario.steps)
+        self._builder.create_test_case(scenario=scenario)
 
     def after_scenario(self, scenario):
         """Set scenario status
